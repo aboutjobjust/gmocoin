@@ -1,11 +1,11 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GmoCoinClient } from "../../src/index.ts";
+import assert from "../helpers/assert.ts";
+import { readTestConfig } from "../helpers/config.ts";
+import { test } from "../helpers/harness.ts";
 
-const apiKey = process.env.GMO_TEST_API_KEY;
-const secretKey = process.env.GMO_TEST_SECRET_KEY;
-const enabled = process.env.GMO_TEST_PRIVATE_READONLY === "1";
+const apiKey = readTestConfig("GMO_TEST_API_KEY");
+const secretKey = readTestConfig("GMO_TEST_SECRET_KEY");
+const enabled = readTestConfig("GMO_TEST_PRIVATE_READONLY") === "1";
 
 const maybeTest = enabled && apiKey && secretKey ? test : test.skip;
 

@@ -13,6 +13,7 @@
     "verbatimModuleSyntax": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
+    "types": [],
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },

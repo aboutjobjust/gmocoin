@@ -1,9 +1,9 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GmoCoinClient } from "../../src/index.ts";
+import assert from "../helpers/assert.ts";
+import { readTestConfig } from "../helpers/config.ts";
+import { test } from "../helpers/harness.ts";
 
-const symbol = process.env.GMO_TEST_PUBLIC_SYMBOL ?? "BTC";
+const symbol = readTestConfig("GMO_TEST_PUBLIC_SYMBOL", "BTC") ?? "BTC";
 const currentYear = String(new Date().getUTCFullYear());
 
 test("public live smoke: status", async () => {

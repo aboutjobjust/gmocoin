@@ -22,12 +22,11 @@
     "check:test": "tsc -p test/tsconfig.json --pretty false",
     "smoke": "node --experimental-strip-types --eval \"import('./src/index.ts')\"",
     "test": "npm run test:unit",
-    "test:unit": "node --experimental-strip-types --test --test-isolation=none test/unit/client.test.ts test/unit/websocket.test.ts",
-    "test:live:public": "node --experimental-strip-types --test --test-isolation=none test/integration/public.test.ts",
-    "test:live:private:readonly": "node --experimental-strip-types --test --test-isolation=none test/integration/private-readonly.test.ts"
+    "test:unit": "node --experimental-strip-types test/run-unit.ts",
+    "test:live:public": "node --experimental-strip-types test/run-live-public.ts",
+    "test:live:private:readonly": "node --experimental-strip-types test/run-live-private-readonly.ts"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
     "typescript": "^5.9.0"
   }
 }

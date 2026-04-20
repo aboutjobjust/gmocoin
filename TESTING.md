@@ -1,56 +1,38 @@
 # テスト方針
 
-このプロジェクトは本番系 API と通信するため、テストは安全性ごとに分けています。
+このリポジトリのテストは `node:test` や `node:assert` に依存しません。  
+テストコード自体は `fetch` / `Response` / `crypto.subtle` / `globalThis` などの Web 標準 API だけで書かれており、軽量な自前ハーネスで実行します。
+
+実行例では Node.js を使っていますが、テストコードそのものは Node 固有 API を前提にしていません。
 
 ## レベル 1: 単体テスト
 
-通常はこのテストを実行します。
-
-- ネットワーク不要
-- 認証情報不要
-- CI でも安全に実行可能
-- 署名生成、クエリ構築、エラー処理、WebSocket 補助処理を確認
-
-実行:
+通常はこれだけ実行してください。署名、クエリ構築、エラー処理、WebSocket 補助処理を確認します。
 
 ```bash
 npm run test
 ```
 
-Windows PowerShell で `npm` 実行がポリシーに引っかかる場合は、`npm.cmd run test` を使ってください。
+Windows PowerShell で `npm` が解決されない場合は `npm.cmd run test` を使ってください。
 
 ## レベル 2: Public API の live smoke test
 
-GMO コインの public endpoint のみを実際に呼びます。
-
-- 認証情報不要
-- 公開マーケットデータのみを参照
-- ネットワーク状態や API 側の稼働状況には依存
-
-実行:
+公開 API の読み取り系エンドポイントだけを軽く疎通確認します。
 
 ```bash
 npm run test:live:public
 ```
 
-任意の環境変数:
+利用可能な設定:
 
 - `GMO_TEST_PUBLIC_SYMBOL`
   - 既定値: `BTC`
 
+Node.js では通常の環境変数で渡せます。Node 以外のランタイムでは、必要なら先に `globalThis.GMO_TEST_CONFIG` を設定してください。
+
 ## レベル 3: Private API の read-only live smoke test
 
-専用の read-only API キーを使って、最低限の確認だけを行います。
-
-推奨するガードレール:
-
-- テスト専用の API キーを作る
-- GMO コイン側で IP 制限を有効化する
-- smoke test に必要な最小限の read-only 権限だけを付与する
-- 注文権限や振替権限のあるキーを使い回さない
-- 認証情報はローカル環境変数だけで管理する
-
-実行:
+本番 API を叩くため、専用の read-only API キーだけを使ってください。発注・取消・振替のような更新系 API はこの自動テストには含めません。
 
 ```bash
 set GMO_TEST_PRIVATE_READONLY=1
@@ -59,39 +41,41 @@ set GMO_TEST_SECRET_KEY=...
 npm run test:live:private:readonly
 ```
 
-必要な環境変数:
+必要な設定:
 
 - `GMO_TEST_PRIVATE_READONLY=1`
 - `GMO_TEST_API_KEY`
 - `GMO_TEST_SECRET_KEY`
 
-## 更新系 API のテスト
+テスト設定の読み取り順は次の通りです。
 
-次のような更新系 API は、既定では自動テストに含めていません。
+1. `globalThis.GMO_TEST_CONFIG`
+2. `process.env`
 
-- 注文
-- 注文変更
-- 注文取消
-- 振替
-- ロスカットレート変更
+つまり Node.js では従来通り環境変数で動きますが、Edge 互換ランタイムやブラウザ寄りの実行環境では `globalThis.GMO_TEST_CONFIG` を使って同じテストコードを流用できます。
 
-自動化しない理由は、本番系 API への副作用を避けるためです。
+## 安全運用
 
-どうしても更新系の確認が必要なら、最低でも次の条件を入れてください。
+更新系 API の自動テストは、次の理由で既定では実施しません。
 
-- テスト専用の本番口座、または専用サブ口座を使う
-- 口座残高は必要最小限に抑える
-- 専用 API キーを使い、権限は最小化する
-- IP 制限を有効にする
-- スクリプト側でも銘柄を明示的に許可制にする
-- `MARKET` よりも副作用の読みやすい `LIMIT` を優先する
-- `I_UNDERSTAND_THIS_HITS_PRODUCTION` のような強い opt-in 環境変数を要求する
-- すべてのリクエストと返却された order id を記録する
-- 実行後に手動で後始末を確認する
+- 発注
+- 発注の変更
+- 発注の取消
+- 資金移動やロスカット関連の操作
 
-このリポジトリの安全な既定運用は次のとおりです。
+本番環境を対象にする以上、次を守る前提です。
 
-- 常時実行するのは単体テスト
-- 必要に応じて public live smoke test
-- private は専用 read-only キーで smoke test のみ
-- 更新系の確認は手動運用
+- テスト専用の API キーを分離する
+- 可能なら read-only 権限だけに絞る
+- 可能なら IP 制限を有効にする
+- まずは unit test と public live smoke test だけを CI に入れる
+- private live test は手動または限定ジョブで実行する
+
+## 実行確認の目安
+
+日常運用では次の順で十分です。
+
+1. `npm run check`
+2. `npm run test`
+3. 必要なときだけ `npm run test:live:public`
+4. private は read-only キーで `npm run test:live:private:readonly`

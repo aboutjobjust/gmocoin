@@ -1,8 +1,6 @@
-import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
-import test from "node:test";
-
 import { GmoCoinApiError, GmoCoinClient } from "../../src/index.ts";
+import assert from "../helpers/assert.ts";
+import { test } from "../helpers/harness.ts";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -11,8 +9,20 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function sign(secret: string, text: string): string {
-  return createHmac("sha256", secret).update(text).digest("hex");
+async function sign(secret: string, text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(text));
+
+  return Array.from(new Uint8Array(signature), (value) => value.toString(16).padStart(2, "0")).join(
+    ""
+  );
 }
 
 test("public request builds query parameters without auth headers", async () => {
@@ -55,7 +65,10 @@ test("private GET signs timestamp, method, and path without query string", async
   assert.equal(requestUrl, "https://api.coin.z.com/private/v1/orders?orderId=123%2C456");
   assert.equal(requestHeaders.get("API-KEY"), "test-key");
   assert.equal(requestHeaders.get("API-TIMESTAMP"), String(timestamp));
-  assert.equal(requestHeaders.get("API-SIGN"), sign("test-secret", `${timestamp}GET/v1/orders`));
+  assert.equal(
+    requestHeaders.get("API-SIGN"),
+    await sign("test-secret", `${timestamp}GET/v1/orders`)
+  );
 });
 
 test("private POST signs the serialized JSON body", async () => {
@@ -90,7 +103,7 @@ test("private POST signs the serialized JSON body", async () => {
   assert.equal(requestHeaders.get("content-type"), "application/json");
   assert.equal(
     requestHeaders.get("API-SIGN"),
-    sign("test-secret", `${timestamp}POST/v1/order${expectedBody}`)
+    await sign("test-secret", `${timestamp}POST/v1/order${expectedBody}`)
   );
 });
 
@@ -113,7 +126,10 @@ test("ws-auth PUT omits the request body from the signature", async () => {
   await client.extendWebSocketToken({ token: "abc" });
 
   assert.equal(requestBody, JSON.stringify({ token: "abc" }));
-  assert.equal(requestHeaders.get("API-SIGN"), sign("test-secret", `${timestamp}PUT/v1/ws-auth`));
+  assert.equal(
+    requestHeaders.get("API-SIGN"),
+    await sign("test-secret", `${timestamp}PUT/v1/ws-auth`)
+  );
 });
 
 test("private requests require credentials", async () => {
@@ -138,7 +154,7 @@ test("non-zero API status throws GmoCoinApiError with message details", async ()
     () => client.getStatus(),
     (error: unknown) => {
       assert.ok(error instanceof GmoCoinApiError);
-      const apiError = error;
+      const apiError = error as GmoCoinApiError;
       assert.match(apiError.message, /ERR-001: bad request/);
       return true;
     }
@@ -160,7 +176,7 @@ test("http errors throw GmoCoinApiError", async () => {
     () => client.getStatus(),
     (error: unknown) => {
       assert.ok(error instanceof GmoCoinApiError);
-      const apiError = error;
+      const apiError = error as GmoCoinApiError;
       assert.equal(apiError.httpStatus, 500);
       assert.match(apiError.message, /ERR-500: server error/);
       return true;

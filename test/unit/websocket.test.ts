@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-
 import { GmoCoinWebSocketConnection, parseWebSocketMessage } from "../../src/index.ts";
 import { resolveWebSocketFactory } from "../../src/websocket.ts";
+import assert from "../helpers/assert.ts";
+import { test } from "../helpers/harness.ts";
 import { FakeWebSocket } from "../helpers/fake-websocket.ts";
 
 test("parseWebSocketMessage parses text payloads", () => {
