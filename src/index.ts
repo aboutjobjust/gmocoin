@@ -5,4 +5,4 @@ export {
   type WebSocketFactory,
   type WebSocketLike
 } from "./websocket.ts";
-export type * from "./types.ts";
+export * from "./types.ts";

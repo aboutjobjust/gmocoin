@@ -1,4 +1,4 @@
-import type { PrivateSubscription, PublicSubscription } from "./types.ts";
+import type { MarketSymbol, PrivateSubscription, PublicSubscription } from "./types.ts";
 export interface WebSocketLike {
     readonly readyState: number;
     addEventListener(type: "open" | "message" | "close" | "error", listener: EventListenerOrEventListenerObject): void;
@@ -14,9 +14,9 @@ export declare class GmoCoinWebSocketConnection {
     sendJson(payload: unknown): Promise<void>;
     subscribe(message: PublicSubscription | PrivateSubscription): Promise<void>;
     unsubscribe(message: PublicSubscription | PrivateSubscription): Promise<void>;
-    subscribeTicker(symbol: string): Promise<void>;
-    subscribeOrderbooks(symbol: string): Promise<void>;
-    subscribeTrades(symbol: string, option?: "TAKER_ONLY"): Promise<void>;
+    subscribeTicker(symbol: MarketSymbol): Promise<void>;
+    subscribeOrderbooks(symbol: MarketSymbol): Promise<void>;
+    subscribeTrades(symbol: MarketSymbol, option?: "TAKER_ONLY"): Promise<void>;
     subscribeExecutionEvents(): Promise<void>;
     subscribeOrderEvents(): Promise<void>;
     subscribePositionEvents(): Promise<void>;

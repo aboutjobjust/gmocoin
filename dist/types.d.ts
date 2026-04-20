@@ -34,6 +34,24 @@ export interface ApiListResult<T> {
     list: T[];
     pagination?: Pagination;
 }
+export declare const SPOT_SYMBOLS: readonly ["BTC", "ETH", "BCH", "LTC", "XRP", "XLM", "XTZ", "DOT", "ATOM", "DAI", "FCR", "ADA", "LINK", "DOGE", "SOL", "ASTR", "NAC", "WILD", "SUI"];
+export declare const LEVERAGE_SYMBOLS: readonly ["BTC_JPY", "ETH_JPY", "BCH_JPY", "LTC_JPY", "XRP_JPY", "DOT_JPY", "ATOM_JPY", "ADA_JPY", "LINK_JPY", "DOGE_JPY", "SOL_JPY", "SUI_JPY"];
+export declare const MARKET_SYMBOLS: readonly ["BTC", "ETH", "BCH", "LTC", "XRP", "XLM", "XTZ", "DOT", "ATOM", "DAI", "FCR", "ADA", "LINK", "DOGE", "SOL", "ASTR", "NAC", "WILD", "SUI", "BTC_JPY", "ETH_JPY", "BCH_JPY", "LTC_JPY", "XRP_JPY", "DOT_JPY", "ATOM_JPY", "ADA_JPY", "LINK_JPY", "DOGE_JPY", "SOL_JPY", "SUI_JPY"];
+export declare const LEVERAGE_PAIR_SYMBOLS: readonly ["BTC/JPY", "ETH/JPY", "BCH/JPY", "LTC/JPY", "XRP/JPY", "DOT/JPY", "ATOM/JPY", "ADA/JPY", "LINK/JPY", "DOGE/JPY", "SOL/JPY", "SUI/JPY"];
+export declare const TRADING_VOLUME_SYMBOLS: readonly ["BTC", "ETH", "BCH", "LTC", "XRP", "XLM", "XTZ", "DOT", "ATOM", "DAI", "FCR", "ADA", "LINK", "DOGE", "SOL", "ASTR", "NAC", "WILD", "SUI", "BTC/JPY", "ETH/JPY", "BCH/JPY", "LTC/JPY", "XRP/JPY", "DOT/JPY", "ATOM/JPY", "ADA/JPY", "LINK/JPY", "DOGE/JPY", "SOL/JPY", "SUI/JPY"];
+export declare const ASSET_SYMBOLS: readonly ["JPY", "BTC", "ETH", "BCH", "LTC", "XRP", "XLM", "OMG", "XTZ", "DOT", "ATOM", "DAI", "FCR", "ADA", "LINK", "DOGE", "SOL", "FLR", "ASTR", "FIL", "SAND", "CHZ", "NAC", "AVAX", "WILD", "SUI", "ZPG", "ZPGAG", "ZPGPT"];
+export type SpotSymbol = (typeof SPOT_SYMBOLS)[number];
+export type LeverageSymbol = (typeof LEVERAGE_SYMBOLS)[number];
+export type MarketSymbol = (typeof MARKET_SYMBOLS)[number];
+export type LeveragePairSymbol = (typeof LEVERAGE_PAIR_SYMBOLS)[number];
+export type TradingVolumeSymbol = (typeof TRADING_VOLUME_SYMBOLS)[number];
+export type AssetSymbol = (typeof ASSET_SYMBOLS)[number];
+export declare function isSpotSymbol(value: string): value is SpotSymbol;
+export declare function isLeverageSymbol(value: string): value is LeverageSymbol;
+export declare function isMarketSymbol(value: string): value is MarketSymbol;
+export declare function isLeveragePairSymbol(value: string): value is LeveragePairSymbol;
+export declare function isTradingVolumeSymbol(value: string): value is TradingVolumeSymbol;
+export declare function isAssetSymbol(value: string): value is AssetSymbol;
 export type TradeSide = "BUY" | "SELL";
 export type ExecutionType = "MARKET" | "LIMIT" | "STOP";
 export type TimeInForce = "FAK" | "FAS" | "FOK" | "SOK";
@@ -45,6 +63,7 @@ export type OrderEventStatus = "WAITING" | "ORDERED" | "CANCELED" | "EXPIRED";
 export type OrderType = "NORMAL" | "LOSSCUT";
 export type PositionEventMessageType = "OPR" | "UPR" | "ULR" | "CPR";
 export type PositionSummaryEventMessageType = "INIT" | "UPDATE" | "PERIODIC";
+export type CancelType = "USER" | "POSITION_LOSSCUT" | "INSUFFICIENT_BALANCE" | "INSUFFICIENT_MARGIN" | "ACCOUNT_LOSSCUT" | "MARGIN_CALL" | "MARGIN_CALL_LOSSCUT" | "EXPIRED_FAK" | "EXPIRED_FOK" | "EXPIRED_SOK" | "EXPIRED_SELFTRADE" | "CLOSED_ORDER" | "SOK_TAKER" | "PRICE_LIMIT";
 export type KlineInterval = "1min" | "5min" | "10min" | "15min" | "30min" | "1hour" | "4hour" | "8hour" | "12hour" | "1day" | "1week" | "1month";
 export interface ExchangeStatusData {
     status: ExchangeStatus;
@@ -55,7 +74,7 @@ export interface Ticker {
     high: string;
     last: string;
     low: string;
-    symbol: string;
+    symbol: MarketSymbol;
     timestamp: string;
     volume: string;
 }
@@ -66,7 +85,7 @@ export interface OrderBookLevel {
 export interface OrderBook {
     asks: OrderBookLevel[];
     bids: OrderBookLevel[];
-    symbol: string;
+    symbol: MarketSymbol;
     timestamp: string;
 }
 export interface PublicTrade {
@@ -84,7 +103,7 @@ export interface Kline {
     volume: string;
 }
 export interface SymbolRule {
-    symbol: string;
+    symbol: MarketSymbol;
     minOrderSize: string;
     maxOrderSize: string;
     sizeStep: string;
@@ -105,10 +124,10 @@ export interface AssetBalance {
     amount: string;
     available: string;
     conversionRate: string;
-    symbol: string;
+    symbol: AssetSymbol;
 }
 export interface TradingVolumeLimit {
-    symbol: string;
+    symbol: TradingVolumeSymbol;
     todayLimitOpenSize?: string;
     todayLimitBuySize?: string;
     todayLimitSellSize?: string;
@@ -132,14 +151,14 @@ export interface CryptoTransferHistoryEntry {
     amount: string;
     fee: string;
     status: "EXECUTED";
-    symbol: string;
+    symbol: SpotSymbol;
     timestamp: string;
     txHash: string;
 }
 export interface Order {
     rootOrderId: number;
     orderId: number;
-    symbol: string;
+    symbol: MarketSymbol;
     side: TradeSide;
     orderType: OrderType;
     executionType: ExecutionType;
@@ -149,7 +168,7 @@ export interface Order {
     price: string;
     losscutPrice: string;
     status: OrderStatus;
-    cancelType?: string;
+    cancelType?: CancelType;
     timeInForce: TimeInForce;
     timestamp: string;
 }
@@ -157,7 +176,7 @@ export interface Execution {
     executionId: number;
     orderId: number;
     positionId?: number;
-    symbol: string;
+    symbol: MarketSymbol;
     side: TradeSide;
     settleType: Extract<SettleType, "OPEN" | "CLOSE">;
     size: string;
@@ -168,7 +187,7 @@ export interface Execution {
 }
 export interface OpenPosition {
     positionId: number;
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
     size: string;
     orderdSize: string;
@@ -184,7 +203,7 @@ export interface PositionSummary {
     side: TradeSide;
     sumOrderQuantity: string;
     sumPositionQuantity: string;
-    symbol: string;
+    symbol: LeverageSymbol;
 }
 export type TransferType = "WITHDRAWAL" | "DEPOSIT";
 export interface TransferRequest {
@@ -195,21 +214,28 @@ export interface TransferResult {
     transferredAmount: string;
 }
 export interface CreateOrderRequestBase {
-    symbol: string;
+    symbol: MarketSymbol;
     side: TradeSide;
-    executionType: ExecutionType;
-    timeInForce?: TimeInForce;
     size: string;
-    cancelBefore?: boolean;
 }
 export type CreateOrderRequest = (CreateOrderRequestBase & {
     executionType: "MARKET";
+    timeInForce?: undefined;
     price?: undefined;
     losscutPrice?: undefined;
+    cancelBefore?: boolean;
 }) | (CreateOrderRequestBase & {
-    executionType: "LIMIT" | "STOP";
+    executionType: "LIMIT";
+    timeInForce?: TimeInForce;
     price: string;
     losscutPrice?: string;
+    cancelBefore?: undefined;
+}) | (CreateOrderRequestBase & {
+    executionType: "STOP";
+    timeInForce?: undefined;
+    price: string;
+    losscutPrice?: string;
+    cancelBefore?: undefined;
 });
 export interface ChangeOrderRequest {
     orderId: number;
@@ -233,7 +259,7 @@ export interface CancelOrdersResult {
     failed: Array<CancelOrdersFailure | Record<string, unknown>>;
 }
 export interface CancelBulkOrderRequest {
-    symbols: string[];
+    symbols: MarketSymbol[];
     side?: TradeSide;
     settleType?: Extract<SettleType, "OPEN" | "CLOSE">;
     desc?: boolean;
@@ -248,33 +274,45 @@ export interface SettlePosition {
     size: string;
 }
 export interface CloseOrderRequestBase {
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
-    executionType: ExecutionType;
-    timeInForce?: TimeInForce;
     cancelBefore?: boolean;
 }
 export type CloseOrderRequest = (CloseOrderRequestBase & {
     executionType: "MARKET";
+    timeInForce?: undefined;
     price?: undefined;
     settlePosition: [SettlePosition];
 }) | (CloseOrderRequestBase & {
-    executionType: "LIMIT" | "STOP";
+    executionType: "LIMIT";
+    timeInForce?: TimeInForce;
+    price: string;
+    settlePosition: [SettlePosition];
+}) | (CloseOrderRequestBase & {
+    executionType: "STOP";
+    timeInForce?: undefined;
     price: string;
     settlePosition: [SettlePosition];
 });
 export type CloseBulkOrderRequest = {
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
     executionType: "MARKET";
-    timeInForce?: TimeInForce;
+    timeInForce?: undefined;
     size: string;
     price?: undefined;
 } | {
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
-    executionType: "LIMIT" | "STOP";
+    executionType: "LIMIT";
     timeInForce?: TimeInForce;
+    size: string;
+    price: string;
+} | {
+    symbol: LeverageSymbol;
+    side: TradeSide;
+    executionType: "STOP";
+    timeInForce?: undefined;
     size: string;
     price: string;
 };
@@ -288,17 +326,17 @@ export interface WsAuthTokenRequest {
 export interface PublicTickerSubscription {
     command: "subscribe" | "unsubscribe";
     channel: "ticker";
-    symbol: string;
+    symbol: MarketSymbol;
 }
 export interface PublicOrderbooksSubscription {
     command: "subscribe" | "unsubscribe";
     channel: "orderbooks";
-    symbol: string;
+    symbol: MarketSymbol;
 }
 export interface PublicTradesSubscription {
     command: "subscribe" | "unsubscribe";
     channel: "trades";
-    symbol: string;
+    symbol: MarketSymbol;
     option?: "TAKER_ONLY";
 }
 export type PublicSubscription = PublicTickerSubscription | PublicOrderbooksSubscription | PublicTradesSubscription;
@@ -327,7 +365,7 @@ export interface PublicTickerMessage {
     high: string;
     last: string;
     low: string;
-    symbol: string;
+    symbol: MarketSymbol;
     timestamp: string;
     volume: string;
 }
@@ -335,7 +373,7 @@ export interface PublicOrderbooksMessage {
     channel: "orderbooks";
     asks: OrderBookLevel[];
     bids: OrderBookLevel[];
-    symbol: string;
+    symbol: MarketSymbol;
     timestamp: string;
 }
 export interface PublicTradeMessage {
@@ -344,14 +382,14 @@ export interface PublicTradeMessage {
     side: TradeSide;
     size: string;
     timestamp: string;
-    symbol: string;
+    symbol: MarketSymbol;
 }
 export type PublicWebSocketMessage = PublicTickerMessage | PublicOrderbooksMessage | PublicTradeMessage;
 export interface ExecutionEvent {
     channel: "executionEvents";
     orderId: number;
     executionId: number;
-    symbol: string;
+    symbol: MarketSymbol;
     settleType: Extract<SettleType, "OPEN" | "CLOSE">;
     executionType: ExecutionType;
     side: TradeSide;
@@ -371,12 +409,12 @@ export interface ExecutionEvent {
 export interface OrderEvent {
     channel: "orderEvents";
     orderId: number;
-    symbol: string;
+    symbol: MarketSymbol;
     settleType: SettleType;
     executionType: ExecutionType;
     side: TradeSide;
     orderStatus: OrderEventStatus;
-    cancelType?: string;
+    cancelType?: CancelType;
     orderTimestamp: string;
     orderPrice: string;
     orderSize: string;
@@ -388,7 +426,7 @@ export interface OrderEvent {
 export interface PositionEvent {
     channel: "positionEvents";
     positionId: number;
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
     size: string;
     orderdSize: string;
@@ -401,7 +439,7 @@ export interface PositionEvent {
 }
 export interface PositionSummaryEvent {
     channel: "positionSummaryEvents";
-    symbol: string;
+    symbol: LeverageSymbol;
     side: TradeSide;
     averagePositionRate: string;
     positionLossGain: string;

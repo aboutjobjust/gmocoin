@@ -18,14 +18,18 @@ import type {
   FiatHistoryEntry,
   GmoCoinApiErrorResponse,
   GmoCoinApiResponse,
+  KlineInterval,
+  LeverageSymbol,
   Kline,
   MarginInfo,
+  MarketSymbol,
   OpenPosition,
   Order,
   OrderBook,
   Pagination,
   PositionSummary,
   QueryParams,
+  SpotSymbol,
   SymbolRule,
   Ticker,
   TradingVolume,
@@ -58,6 +62,11 @@ interface RequestOptions {
   body?: unknown;
   includeBodyInSignature?: boolean;
 }
+
+type CsvIdParam = string | number | readonly (string | number)[];
+type ExecutionLookupParams =
+  | { orderId: number; executionId?: undefined }
+  | { orderId?: undefined; executionId: CsvIdParam };
 
 export class GmoCoinApiError extends Error {
   readonly httpStatus: number;
@@ -135,21 +144,21 @@ export class GmoCoinClient {
     return this.requestPublicData<ExchangeStatusData>("/v1/status");
   }
 
-  getTicker(params: { symbol?: string } = {}) {
+  getTicker(params: { symbol?: MarketSymbol } = {}) {
     return this.requestPublicData<Ticker[]>("/v1/ticker", { query: params });
   }
 
-  getOrderbooks(params: { symbol: string }) {
+  getOrderbooks(params: { symbol: MarketSymbol }) {
     return this.requestPublicData<OrderBook>("/v1/orderbooks", { query: params });
   }
 
-  getTrades(params: { symbol: string; page?: number; count?: number }) {
+  getTrades(params: { symbol: MarketSymbol; page?: number; count?: number }) {
     return this.requestPublicData<ApiListResult<import("./types.ts").PublicTrade>>("/v1/trades", {
       query: params
     });
   }
 
-  getKlines(params: { symbol: string; interval: import("./types.ts").KlineInterval; date: string }) {
+  getKlines(params: { symbol: MarketSymbol; interval: KlineInterval; date: string }) {
     return this.requestPublicData<Kline[]>("/v1/klines", { query: params });
   }
 
@@ -181,13 +190,13 @@ export class GmoCoinClient {
     });
   }
 
-  getDepositHistory(params: { symbol: string; fromTimestamp: string; toTimestamp?: string }) {
+  getDepositHistory(params: { symbol: SpotSymbol; fromTimestamp: string; toTimestamp?: string }) {
     return this.requestPrivateData<CryptoTransferHistoryEntry[]>("/v1/account/deposit/history", "GET", {
       query: params
     });
   }
 
-  getWithdrawalHistory(params: { symbol: string; fromTimestamp: string; toTimestamp?: string }) {
+  getWithdrawalHistory(params: { symbol: SpotSymbol; fromTimestamp: string; toTimestamp?: string }) {
     return this.requestPrivateData<CryptoTransferHistoryEntry[]>(
       "/v1/account/withdrawal/history",
       "GET",
@@ -201,13 +210,13 @@ export class GmoCoinClient {
     });
   }
 
-  getActiveOrders(params: { symbol: string; page?: number; count?: number }) {
+  getActiveOrders(params: { symbol: MarketSymbol; page?: number; count?: number }) {
     return this.requestPrivateData<ApiListResult<Order>>("/v1/activeOrders", "GET", { query: params });
   }
 
-  getExecutions(params: { orderId?: number; executionId?: string | number | readonly (string | number)[] }) {
-    if (params.orderId == null && params.executionId == null) {
-      throw new Error("Either `orderId` or `executionId` is required.");
+  getExecutions(params: ExecutionLookupParams) {
+    if ((params.orderId == null) === (params.executionId == null)) {
+      throw new Error("Exactly one of `orderId` or `executionId` is required.");
     }
 
     return this.requestPrivateData<ApiListResult<Execution>>("/v1/executions", "GET", {
@@ -218,19 +227,19 @@ export class GmoCoinClient {
     });
   }
 
-  getLatestExecutions(params: { symbol: string; page?: number; count?: number }) {
+  getLatestExecutions(params: { symbol: MarketSymbol; page?: number; count?: number }) {
     return this.requestPrivateData<ApiListResult<Execution>>("/v1/latestExecutions", "GET", {
       query: params
     });
   }
 
-  getOpenPositions(params: { symbol: string; page?: number; count?: number }) {
+  getOpenPositions(params: { symbol: LeverageSymbol; page?: number; count?: number }) {
     return this.requestPrivateData<ApiListResult<OpenPosition>>("/v1/openPositions", "GET", {
       query: params
     });
   }
 
-  getPositionSummary(params: { symbol?: string } = {}) {
+  getPositionSummary(params: { symbol?: LeverageSymbol } = {}) {
     return this.requestPrivateData<PositionSummary[]>("/v1/positionSummary", "GET", { query: params });
   }
 
@@ -424,7 +433,7 @@ function applyQueryParams(url: URL, params?: QueryParams): void {
   }
 }
 
-function normalizeCsvParam(value: string | number | readonly (string | number)[]): string {
+function normalizeCsvParam(value: CsvIdParam): string {
   if (Array.isArray(value)) {
     return value.map((entry) => String(entry)).join(",");
   }

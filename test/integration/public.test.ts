@@ -1,9 +1,13 @@
-import { GmoCoinClient } from "../../src/index.ts";
+import { GmoCoinClient, isMarketSymbol } from "../../src/index.ts";
 import assert from "../helpers/assert.ts";
 import { readTestConfig } from "../helpers/config.ts";
 import { test } from "../helpers/harness.ts";
 
-const symbol = readTestConfig("GMO_TEST_PUBLIC_SYMBOL", "BTC") ?? "BTC";
+const configuredSymbol = readTestConfig("GMO_TEST_PUBLIC_SYMBOL", "BTC") ?? "BTC";
+if (!isMarketSymbol(configuredSymbol)) {
+  throw new Error(`GMO_TEST_PUBLIC_SYMBOL must be one of MARKET_SYMBOLS. Received: ${configuredSymbol}`);
+}
+const symbol = configuredSymbol;
 const currentYear = String(new Date().getUTCFullYear());
 
 test("public live smoke: status", async () => {

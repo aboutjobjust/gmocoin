@@ -1,4 +1,4 @@
-import { GmoCoinApiError, GmoCoinClient } from "../../src/index.ts";
+import { GmoCoinApiError, GmoCoinClient, type CreateOrderRequest } from "../../src/index.ts";
 import assert from "../helpers/assert.ts";
 import { test } from "../helpers/harness.ts";
 
@@ -174,7 +174,7 @@ test("private POST signs the serialized JSON body", async () => {
     timeInForce: "FAS" as const,
     price: "430001",
     size: "0.02"
-  };
+  } satisfies CreateOrderRequest;
 
   const client = new GmoCoinClient({
     apiKey: "test-key",
@@ -229,6 +229,27 @@ test("private requests require credentials", async () => {
   });
 
   await assert.rejects(() => client.getMargin(), /requires both `apiKey` and `secretKey`/);
+});
+
+test("getExecutions rejects when both orderId and executionId are provided", async () => {
+  const client = new GmoCoinClient({
+    apiKey: "test-key",
+    secretKey: "test-secret",
+    fetch: async () =>
+      jsonResponse({
+        status: 0,
+        data: { list: [] },
+        responsetime: "2026-04-20T00:00:00.000Z"
+      })
+  });
+
+  await assert.rejects(
+    () =>
+      client.getExecutions(
+        { orderId: 1, executionId: 2 } as unknown as Parameters<GmoCoinClient["getExecutions"]>[0]
+      ),
+    /Exactly one of `orderId` or `executionId` is required/
+  );
 });
 
 test("non-zero API status throws GmoCoinApiError with message details", async () => {

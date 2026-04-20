@@ -1,4 +1,5 @@
 import type {
+  MarketSymbol,
   PrivatePositionSummaryEventsSubscription,
   PrivateSubscription,
   PublicSubscription
@@ -44,15 +45,15 @@ export class GmoCoinWebSocketConnection {
     await this.sendJson({ ...message, command: "unsubscribe" });
   }
 
-  async subscribeTicker(symbol: string): Promise<void> {
+  async subscribeTicker(symbol: MarketSymbol): Promise<void> {
     await this.subscribe({ channel: "ticker", command: "subscribe", symbol });
   }
 
-  async subscribeOrderbooks(symbol: string): Promise<void> {
+  async subscribeOrderbooks(symbol: MarketSymbol): Promise<void> {
     await this.subscribe({ channel: "orderbooks", command: "subscribe", symbol });
   }
 
-  async subscribeTrades(symbol: string, option?: "TAKER_ONLY"): Promise<void> {
+  async subscribeTrades(symbol: MarketSymbol, option?: "TAKER_ONLY"): Promise<void> {
     const message: PublicSubscription = { channel: "trades", command: "subscribe", symbol };
     if (option) {
       message.option = option;

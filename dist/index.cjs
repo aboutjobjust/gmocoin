@@ -20,9 +20,21 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  ASSET_SYMBOLS: () => ASSET_SYMBOLS,
   GmoCoinApiError: () => GmoCoinApiError,
   GmoCoinClient: () => GmoCoinClient,
   GmoCoinWebSocketConnection: () => GmoCoinWebSocketConnection,
+  LEVERAGE_PAIR_SYMBOLS: () => LEVERAGE_PAIR_SYMBOLS,
+  LEVERAGE_SYMBOLS: () => LEVERAGE_SYMBOLS,
+  MARKET_SYMBOLS: () => MARKET_SYMBOLS,
+  SPOT_SYMBOLS: () => SPOT_SYMBOLS,
+  TRADING_VOLUME_SYMBOLS: () => TRADING_VOLUME_SYMBOLS,
+  isAssetSymbol: () => isAssetSymbol,
+  isLeveragePairSymbol: () => isLeveragePairSymbol,
+  isLeverageSymbol: () => isLeverageSymbol,
+  isMarketSymbol: () => isMarketSymbol,
+  isSpotSymbol: () => isSpotSymbol,
+  isTradingVolumeSymbol: () => isTradingVolumeSymbol,
   parseWebSocketMessage: () => parseWebSocketMessage
 });
 module.exports = __toCommonJS(index_exports);
@@ -243,8 +255,8 @@ var GmoCoinClient = class {
     return this.requestPrivateData("/v1/activeOrders", "GET", { query: params });
   }
   getExecutions(params) {
-    if (params.orderId == null && params.executionId == null) {
-      throw new Error("Either `orderId` or `executionId` is required.");
+    if (params.orderId == null === (params.executionId == null)) {
+      throw new Error("Exactly one of `orderId` or `executionId` is required.");
     }
     return this.requestPrivateData("/v1/executions", "GET", {
       query: {
@@ -442,5 +454,113 @@ function toHex(bytes) {
     result += value.toString(16).padStart(2, "0");
   }
   return result;
+}
+
+// src/types.ts
+var SPOT_SYMBOLS = [
+  "BTC",
+  "ETH",
+  "BCH",
+  "LTC",
+  "XRP",
+  "XLM",
+  "XTZ",
+  "DOT",
+  "ATOM",
+  "DAI",
+  "FCR",
+  "ADA",
+  "LINK",
+  "DOGE",
+  "SOL",
+  "ASTR",
+  "NAC",
+  "WILD",
+  "SUI"
+];
+var LEVERAGE_SYMBOLS = [
+  "BTC_JPY",
+  "ETH_JPY",
+  "BCH_JPY",
+  "LTC_JPY",
+  "XRP_JPY",
+  "DOT_JPY",
+  "ATOM_JPY",
+  "ADA_JPY",
+  "LINK_JPY",
+  "DOGE_JPY",
+  "SOL_JPY",
+  "SUI_JPY"
+];
+var MARKET_SYMBOLS = [...SPOT_SYMBOLS, ...LEVERAGE_SYMBOLS];
+var LEVERAGE_PAIR_SYMBOLS = [
+  "BTC/JPY",
+  "ETH/JPY",
+  "BCH/JPY",
+  "LTC/JPY",
+  "XRP/JPY",
+  "DOT/JPY",
+  "ATOM/JPY",
+  "ADA/JPY",
+  "LINK/JPY",
+  "DOGE/JPY",
+  "SOL/JPY",
+  "SUI/JPY"
+];
+var TRADING_VOLUME_SYMBOLS = [...SPOT_SYMBOLS, ...LEVERAGE_PAIR_SYMBOLS];
+var ASSET_SYMBOLS = [
+  "JPY",
+  "BTC",
+  "ETH",
+  "BCH",
+  "LTC",
+  "XRP",
+  "XLM",
+  "OMG",
+  "XTZ",
+  "DOT",
+  "ATOM",
+  "DAI",
+  "FCR",
+  "ADA",
+  "LINK",
+  "DOGE",
+  "SOL",
+  "FLR",
+  "ASTR",
+  "FIL",
+  "SAND",
+  "CHZ",
+  "NAC",
+  "AVAX",
+  "WILD",
+  "SUI",
+  "ZPG",
+  "ZPGAG",
+  "ZPGPT"
+];
+var spotSymbolSet = new Set(SPOT_SYMBOLS);
+var leverageSymbolSet = new Set(LEVERAGE_SYMBOLS);
+var marketSymbolSet = new Set(MARKET_SYMBOLS);
+var leveragePairSymbolSet = new Set(LEVERAGE_PAIR_SYMBOLS);
+var tradingVolumeSymbolSet = new Set(TRADING_VOLUME_SYMBOLS);
+var assetSymbolSet = new Set(ASSET_SYMBOLS);
+function isSpotSymbol(value) {
+  return spotSymbolSet.has(value);
+}
+function isLeverageSymbol(value) {
+  return leverageSymbolSet.has(value);
+}
+function isMarketSymbol(value) {
+  return marketSymbolSet.has(value);
+}
+function isLeveragePairSymbol(value) {
+  return leveragePairSymbolSet.has(value);
+}
+function isTradingVolumeSymbol(value) {
+  return tradingVolumeSymbolSet.has(value);
+}
+function isAssetSymbol(value) {
+  return assetSymbolSet.has(value);
 }
 //# sourceMappingURL=index.cjs.map
