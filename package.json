@@ -1,32 +1,52 @@
 {
   "name": "gmocoin-api-wrapper",
   "version": "0.1.0",
-  "private": true,
+  "description": "TypeScript wrapper for the GMO Coin API",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     }
   },
   "files": [
-    "src",
+    "dist",
     "README.md"
   ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aboutjobjust/gmocoin.git"
+  },
+  "homepage": "https://github.com/aboutjobjust/gmocoin#readme",
+  "bugs": {
+    "url": "https://github.com/aboutjobjust/gmocoin/issues"
+  },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   },
   "scripts": {
+    "build": "npm run build:js && npm run build:types",
+    "build:js": "tsup",
+    "build:types": "tsc -p tsconfig.types.json --pretty false",
     "check": "npm run check:src && npm run check:test",
     "check:src": "tsc -p tsconfig.json --pretty false",
     "check:test": "tsc -p test/tsconfig.json --pretty false",
-    "smoke": "node --experimental-strip-types --eval \"import('./src/index.ts')\"",
+    "smoke": "node --input-type=module --eval \"import('./dist/index.js')\"",
+    "smoke:cjs": "node --eval \"require('./dist/index.cjs')\"",
+    "smoke:src": "node --experimental-strip-types --eval \"import('./src/index.ts')\"",
     "test": "npm run test:unit",
     "test:unit": "node --experimental-strip-types test/run-unit.ts",
     "test:live:public": "node --experimental-strip-types test/run-live-public.ts",
     "test:live:private:readonly": "node --experimental-strip-types test/run-live-private-readonly.ts"
   },
   "devDependencies": {
+    "tsup": "^8.5.1",
     "typescript": "^5.9.0"
   }
 }

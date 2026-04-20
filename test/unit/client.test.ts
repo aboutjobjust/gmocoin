@@ -97,6 +97,44 @@ test("requestPrivateData unwraps the raw response envelope", async () => {
   assert.equal(margin.availableAmount, "1000");
 });
 
+test("REST-only usage does not require WebSocket at construction time", async () => {
+  const originalWebSocket = globalThis.WebSocket;
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "WebSocket");
+
+  try {
+    Object.defineProperty(globalThis, "WebSocket", {
+      configurable: true,
+      writable: true,
+      value: undefined
+    });
+
+    const client = new GmoCoinClient({
+      fetch: async () =>
+        jsonResponse({
+          status: 0,
+          data: { status: "OPEN" },
+          responsetime: "2026-04-20T00:00:00.000Z"
+        })
+    });
+
+    const status = await client.getStatus();
+    assert.equal(status.status, "OPEN");
+    assert.throws(() => client.connectPublicWebSocket(), /WebSocket is not available in this runtime/);
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(globalThis, "WebSocket", descriptor);
+    } else if (originalWebSocket === undefined) {
+      delete (globalThis as typeof globalThis & { WebSocket?: typeof WebSocket }).WebSocket;
+    } else {
+      Object.defineProperty(globalThis, "WebSocket", {
+        configurable: true,
+        writable: true,
+        value: originalWebSocket
+      });
+    }
+  }
+});
+
 test("private GET signs timestamp, method, and path without query string", async () => {
   const timestamp = 1700000000000;
   let requestUrl = "";

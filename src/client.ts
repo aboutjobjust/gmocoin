@@ -82,7 +82,7 @@ export class GmoCoinClient {
   private readonly privateBaseUrl: string;
   private readonly publicWebSocketBaseUrl: string;
   private readonly privateWebSocketBaseUrl: string;
-  private readonly webSocketFactory: WebSocketFactory;
+  private readonly webSocketFactory: WebSocketFactory | undefined;
   private signingKeyPromise?: Promise<CryptoKey>;
 
   constructor(options: GmoCoinClientOptions = {}) {
@@ -98,7 +98,7 @@ export class GmoCoinClient {
     this.privateWebSocketBaseUrl = stripTrailingSlash(
       options.privateWebSocketBaseUrl ?? "wss://api.coin.z.com/ws/private"
     );
-    this.webSocketFactory = resolveWebSocketFactory(options.webSocketFactory);
+    this.webSocketFactory = options.webSocketFactory;
   }
 
   async requestPublic<T>(path: string, options: Omit<RequestOptions, "includeBodyInSignature"> = {}) {
@@ -289,12 +289,14 @@ export class GmoCoinClient {
   }
 
   connectPublicWebSocket() {
-    const socket = this.webSocketFactory(`${this.publicWebSocketBaseUrl}/v1`);
+    const socket = this.getWebSocketFactory()(`${this.publicWebSocketBaseUrl}/v1`);
     return new GmoCoinWebSocketConnection(socket);
   }
 
   connectPrivateWebSocket(token: string) {
-    const socket = this.webSocketFactory(`${this.privateWebSocketBaseUrl}/v1/${encodeURIComponent(token)}`);
+    const socket = this.getWebSocketFactory()(
+      `${this.privateWebSocketBaseUrl}/v1/${encodeURIComponent(token)}`
+    );
     return new GmoCoinWebSocketConnection(socket);
   }
 
@@ -375,6 +377,10 @@ export class GmoCoinClient {
     const key = await this.signingKeyPromise;
     const signature = await subtle.sign("HMAC", key, encoder.encode(text));
     return toHex(new Uint8Array(signature));
+  }
+
+  private getWebSocketFactory(): WebSocketFactory {
+    return resolveWebSocketFactory(this.webSocketFactory);
   }
 }
 
