@@ -1,4 +1,6 @@
+import { loadLocalTestConfig } from "./helpers/load-local-config.ts";
 import { runRegisteredTests } from "./helpers/harness.ts";
-import "./integration/public.test.ts";
 
+await loadLocalTestConfig();
+await import("./integration/public.test.ts");
 await runRegisteredTests();

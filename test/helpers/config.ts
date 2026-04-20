@@ -1,4 +1,4 @@
-type TestConfig = Record<string, string | undefined>;
+export type TestConfig = Record<string, string | undefined>;
 
 type TestGlobal = typeof globalThis & {
   GMO_TEST_CONFIG?: TestConfig;
@@ -6,6 +6,14 @@ type TestGlobal = typeof globalThis & {
     env?: TestConfig;
   };
 };
+
+export function mergeTestConfig(config: TestConfig): void {
+  const runtime = globalThis as TestGlobal;
+  runtime.GMO_TEST_CONFIG = {
+    ...(runtime.GMO_TEST_CONFIG ?? {}),
+    ...config
+  };
+}
 
 export function readTestConfig(name: string, fallback?: string): string | undefined {
   const runtime = globalThis as TestGlobal;

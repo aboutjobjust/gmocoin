@@ -21,23 +21,20 @@ maybeTest("private read-only live smoke: margin", async () => {
   const client = createReadonlyClient();
   const response = await client.getMargin();
 
-  assert.equal(response.status, 0);
-  assert.equal(typeof response.data.availableAmount, "string");
+  assert.equal(typeof response.availableAmount, "string");
 });
 
 maybeTest("private read-only live smoke: assets", async () => {
   const client = createReadonlyClient();
   const response = await client.getAssets();
 
-  assert.equal(response.status, 0);
-  assert.ok(Array.isArray(response.data));
+  assert.ok(Array.isArray(response));
 });
 
 maybeTest("private read-only live smoke: trading volume", async () => {
   const client = createReadonlyClient();
   const response = await client.getTradingVolume();
 
-  assert.equal(response.status, 0);
-  assert.equal(typeof response.data.jpyVolume, "string");
-  assert.ok(Array.isArray(response.data.limit));
+  assert.equal(typeof response.jpyVolume, "string");
+  assert.ok(Array.isArray(response.limit));
 });

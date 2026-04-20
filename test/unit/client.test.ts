@@ -44,6 +44,59 @@ test("public request builds query parameters without auth headers", async () => 
   assert.equal(requestHeaders.get("API-SIGN"), null);
 });
 
+test("high-level endpoint methods return unwrapped data", async () => {
+  const client = new GmoCoinClient({
+    fetch: async () =>
+      jsonResponse({
+        status: 0,
+        data: [{ symbol: "BTC", last: "100", ask: "101", bid: "99", high: "110", low: "90", timestamp: "2026-04-20T00:00:00.000Z", volume: "1" }],
+        responsetime: "2026-04-20T00:00:00.000Z"
+      })
+  });
+
+  const tickers = await client.getTicker({ symbol: "BTC" });
+
+  assert.ok(Array.isArray(tickers));
+  assert.equal(tickers[0]?.symbol, "BTC");
+});
+
+test("low-level requestPublic keeps the raw response envelope", async () => {
+  const client = new GmoCoinClient({
+    fetch: async () =>
+      jsonResponse({
+        status: 0,
+        data: { status: "OPEN" },
+        responsetime: "2026-04-20T00:00:00.000Z"
+      })
+  });
+
+  const response = await client.requestPublic<{ status: string }>("/v1/status");
+
+  assert.equal(response.status, 0);
+  assert.equal(response.data.status, "OPEN");
+  assert.equal(response.responsetime, "2026-04-20T00:00:00.000Z");
+});
+
+test("requestPrivateData unwraps the raw response envelope", async () => {
+  const client = new GmoCoinClient({
+    apiKey: "test-key",
+    secretKey: "test-secret",
+    fetch: async () =>
+      jsonResponse({
+        status: 0,
+        data: { availableAmount: "1000" },
+        responsetime: "2026-04-20T00:00:00.000Z"
+      })
+  });
+
+  const margin = await client.requestPrivateData<{ availableAmount: string }>(
+    "/v1/account/margin",
+    "GET"
+  );
+
+  assert.equal(margin.availableAmount, "1000");
+});
+
 test("private GET signs timestamp, method, and path without query string", async () => {
   const timestamp = 1700000000000;
   let requestUrl = "";

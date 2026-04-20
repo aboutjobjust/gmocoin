@@ -30,6 +30,8 @@ npm run test:live:public
 
 Node.js では通常の環境変数で渡せます。Node 以外のランタイムでは、必要なら先に `globalThis.GMO_TEST_CONFIG` を設定してください。
 
+ローカルで固定値を使いたい場合は、[test/local-config.local.ts](/C:/Users/about/workspace/gmocoin/test/local-config.local.ts) に記述できます。雛形は [test/local-config.example.ts](/C:/Users/about/workspace/gmocoin/test/local-config.example.ts) です。
+
 ## レベル 3: Private API の read-only live smoke test
 
 本番 API を叩くため、専用の read-only API キーだけを使ってください。発注・取消・振替のような更新系 API はこの自動テストには含めません。
@@ -46,6 +48,19 @@ npm run test:live:private:readonly
 - `GMO_TEST_PRIVATE_READONLY=1`
 - `GMO_TEST_API_KEY`
 - `GMO_TEST_SECRET_KEY`
+
+入力先として [test/local-config.local.ts](/C:/Users/about/workspace/gmocoin/test/local-config.local.ts) を用意しています。これは `.gitignore` 済みなので、そのまま API キーを書いて構いません。
+
+```ts
+const config = {
+  GMO_TEST_PUBLIC_SYMBOL: "BTC",
+  GMO_TEST_PRIVATE_READONLY: "1",
+  GMO_TEST_API_KEY: "ここにAPIキー",
+  GMO_TEST_SECRET_KEY: "ここにシークレット"
+};
+
+export default config;
+```
 
 テスト設定の読み取り順は次の通りです。
 

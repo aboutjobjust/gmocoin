@@ -105,6 +105,14 @@ export class GmoCoinClient {
     return this.request<T>(this.publicBaseUrl, path, "GET", options);
   }
 
+  async requestPublicData<T>(
+    path: string,
+    options: Omit<RequestOptions, "includeBodyInSignature"> = {}
+  ): Promise<T> {
+    const response = await this.requestPublic<T>(path, options);
+    return response.data;
+  }
+
   async requestPrivate<T>(
     path: string,
     method: "GET" | "POST" | "PUT" | "DELETE",
@@ -114,74 +122,87 @@ export class GmoCoinClient {
     return this.request<T>(this.privateBaseUrl, path, method, options, true);
   }
 
+  async requestPrivateData<T>(
+    path: string,
+    method: "GET" | "POST" | "PUT" | "DELETE",
+    options: RequestOptions = {}
+  ): Promise<T> {
+    const response = await this.requestPrivate<T>(path, method, options);
+    return response.data;
+  }
+
   getStatus() {
-    return this.requestPublic<ExchangeStatusData>("/v1/status");
+    return this.requestPublicData<ExchangeStatusData>("/v1/status");
   }
 
   getTicker(params: { symbol?: string } = {}) {
-    return this.requestPublic<Ticker[]>("/v1/ticker", { query: params });
+    return this.requestPublicData<Ticker[]>("/v1/ticker", { query: params });
   }
 
   getOrderbooks(params: { symbol: string }) {
-    return this.requestPublic<OrderBook>("/v1/orderbooks", { query: params });
+    return this.requestPublicData<OrderBook>("/v1/orderbooks", { query: params });
   }
 
   getTrades(params: { symbol: string; page?: number; count?: number }) {
-    return this.requestPublic<ApiListResult<import("./types.ts").PublicTrade>>("/v1/trades", { query: params });
+    return this.requestPublicData<ApiListResult<import("./types.ts").PublicTrade>>("/v1/trades", {
+      query: params
+    });
   }
 
   getKlines(params: { symbol: string; interval: import("./types.ts").KlineInterval; date: string }) {
-    return this.requestPublic<Kline[]>("/v1/klines", { query: params });
+    return this.requestPublicData<Kline[]>("/v1/klines", { query: params });
   }
 
   getSymbols() {
-    return this.requestPublic<SymbolRule[]>("/v1/symbols");
+    return this.requestPublicData<SymbolRule[]>("/v1/symbols");
   }
 
   getMargin() {
-    return this.requestPrivate<MarginInfo>("/v1/account/margin", "GET");
+    return this.requestPrivateData<MarginInfo>("/v1/account/margin", "GET");
   }
 
   getAssets() {
-    return this.requestPrivate<AssetBalance[]>("/v1/account/assets", "GET");
+    return this.requestPrivateData<AssetBalance[]>("/v1/account/assets", "GET");
   }
 
   getTradingVolume() {
-    return this.requestPrivate<TradingVolume>("/v1/account/tradingVolume", "GET");
+    return this.requestPrivateData<TradingVolume>("/v1/account/tradingVolume", "GET");
   }
 
   getFiatDepositHistory(params: { fromTimestamp: string; toTimestamp?: string }) {
-    return this.requestPrivate<FiatHistoryEntry[]>("/v1/account/fiatDeposit/history", "GET", {
+    return this.requestPrivateData<FiatHistoryEntry[]>("/v1/account/fiatDeposit/history", "GET", {
       query: params
     });
   }
 
   getFiatWithdrawalHistory(params: { fromTimestamp: string; toTimestamp?: string }) {
-    return this.requestPrivate<FiatHistoryEntry[]>("/v1/account/fiatWithdrawal/history", "GET", {
+    return this.requestPrivateData<FiatHistoryEntry[]>("/v1/account/fiatWithdrawal/history", "GET", {
       query: params
     });
   }
 
   getDepositHistory(params: { symbol: string; fromTimestamp: string; toTimestamp?: string }) {
-    return this.requestPrivate<CryptoTransferHistoryEntry[]>("/v1/account/deposit/history", "GET", {
+    return this.requestPrivateData<CryptoTransferHistoryEntry[]>("/v1/account/deposit/history", "GET", {
       query: params
     });
   }
 
   getWithdrawalHistory(params: { symbol: string; fromTimestamp: string; toTimestamp?: string }) {
-    return this.requestPrivate<CryptoTransferHistoryEntry[]>("/v1/account/withdrawal/history", "GET", {
-      query: params
-    });
+    return this.requestPrivateData<CryptoTransferHistoryEntry[]>(
+      "/v1/account/withdrawal/history",
+      "GET",
+      { query: params }
+    );
   }
 
   getOrders(params: { orderId: string | number | readonly (string | number)[] }) {
-    return this.requestPrivate<ApiListResult<Order>>("/v1/orders", "GET", {
+    return this.requestPrivateData<ApiListResult<Order>>("/v1/orders", "GET", {
       query: { orderId: normalizeCsvParam(params.orderId) }
     });
   }
 
   getActiveOrders(params: { symbol: string; page?: number; count?: number }) {
-    return this.requestPrivate<ApiListResult<Order>>("/v1/activeOrders", "GET", { query: params });
+    return this.requestPrivateData<ApiListResult<Order>>("/v1/activeOrders", "GET", { query: params });
   }
 
   getExecutions(params: { orderId?: number; executionId?: string | number | readonly (string | number)[] }) {
@@ -189,7 +210,7 @@ export class GmoCoinClient {
       throw new Error("Either `orderId` or `executionId` is required.");
     }
 
-    return this.requestPrivate<ApiListResult<Execution>>("/v1/executions", "GET", {
+    return this.requestPrivateData<ApiListResult<Execution>>("/v1/executions", "GET", {
       query: {
         orderId: params.orderId,
         executionId: params.executionId == null ? undefined : normalizeCsvParam(params.executionId)
@@ -198,70 +219,70 @@ export class GmoCoinClient {
   }
 
   getLatestExecutions(params: { symbol: string; page?: number; count?: number }) {
-    return this.requestPrivate<ApiListResult<Execution>>("/v1/latestExecutions", "GET", {
+    return this.requestPrivateData<ApiListResult<Execution>>("/v1/latestExecutions", "GET", {
       query: params
     });
   }
 
   getOpenPositions(params: { symbol: string; page?: number; count?: number }) {
-    return this.requestPrivate<ApiListResult<OpenPosition>>("/v1/openPositions", "GET", {
+    return this.requestPrivateData<ApiListResult<OpenPosition>>("/v1/openPositions", "GET", {
       query: params
     });
   }
 
   getPositionSummary(params: { symbol?: string } = {}) {
-    return this.requestPrivate<PositionSummary[]>("/v1/positionSummary", "GET", { query: params });
+    return this.requestPrivateData<PositionSummary[]>("/v1/positionSummary", "GET", { query: params });
   }
 
   transfer(body: TransferRequest) {
-    return this.requestPrivate<TransferResult>("/v1/account/transfer", "POST", { body });
+    return this.requestPrivateData<TransferResult>("/v1/account/transfer", "POST", { body });
   }
 
   createOrder(body: CreateOrderRequest) {
-    return this.requestPrivate<string>("/v1/order", "POST", { body });
+    return this.requestPrivateData<string>("/v1/order", "POST", { body });
   }
 
   changeOrder(body: ChangeOrderRequest) {
-    return this.requestPrivate<undefined>("/v1/changeOrder", "POST", { body });
+    return this.requestPrivateData<undefined>("/v1/changeOrder", "POST", { body });
   }
 
   cancelOrder(body: CancelOrderRequest) {
-    return this.requestPrivate<undefined>("/v1/cancelOrder", "POST", { body });
+    return this.requestPrivateData<undefined>("/v1/cancelOrder", "POST", { body });
   }
 
   cancelOrders(body: CancelOrdersRequest) {
-    return this.requestPrivate<CancelOrdersResult>("/v1/cancelOrders", "POST", { body });
+    return this.requestPrivateData<CancelOrdersResult>("/v1/cancelOrders", "POST", { body });
   }
 
   cancelBulkOrder(body: CancelBulkOrderRequest) {
-    return this.requestPrivate<CancelBulkOrderResult>("/v1/cancelBulkOrder", "POST", { body });
+    return this.requestPrivateData<CancelBulkOrderResult>("/v1/cancelBulkOrder", "POST", { body });
   }
 
   closeOrder(body: CloseOrderRequest) {
-    return this.requestPrivate<string>("/v1/closeOrder", "POST", { body });
+    return this.requestPrivateData<string>("/v1/closeOrder", "POST", { body });
   }
 
   closeBulkOrder(body: CloseBulkOrderRequest) {
-    return this.requestPrivate<string>("/v1/closeBulkOrder", "POST", { body });
+    return this.requestPrivateData<string>("/v1/closeBulkOrder", "POST", { body });
   }
 
   changeLosscutPrice(body: ChangeLosscutPriceRequest) {
-    return this.requestPrivate<undefined>("/v1/changeLosscutPrice", "POST", { body });
+    return this.requestPrivateData<undefined>("/v1/changeLosscutPrice", "POST", { body });
   }
 
   createWebSocketToken() {
-    return this.requestPrivate<string>("/v1/ws-auth", "POST", { body: {} });
+    return this.requestPrivateData<string>("/v1/ws-auth", "POST", { body: {} });
   }
 
   extendWebSocketToken(body: WsAuthTokenRequest) {
-    return this.requestPrivate<undefined>("/v1/ws-auth", "PUT", {
+    return this.requestPrivateData<undefined>("/v1/ws-auth", "PUT", {
       body,
       includeBodyInSignature: false
     });
   }
 
   deleteWebSocketToken(body: WsAuthTokenRequest) {
-    return this.requestPrivate<undefined>("/v1/ws-auth", "DELETE", {
+    return this.requestPrivateData<undefined>("/v1/ws-auth", "DELETE", {
       body,
       includeBodyInSignature: false
     });
